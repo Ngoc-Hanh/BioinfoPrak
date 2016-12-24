@@ -28,24 +28,22 @@ class Gotoh(GotohBase):
         self.__similarityMatrixD[0, 0] = 0
         for i in range(1, self.__lengthA + 1):
             self.__similarityMatrixD[i, 0] = self.__similarityMatrixD[i - 1, 0] + self.__gapCostOpen
-            #self.__tracebackMatrix[i, 0] = ["up"]
+            self.__tracebackMatrixD[i, 0] = ["upD"]
 
         for j in range(1, self.__lengthB + 1):
             self.__similarityMatrixD[0, j] = self.__similarityMatrixD[0, j - 1] + self.__gapCostOpen
-            #self.__tracebackMatrix[0, j] = ["right"]
+            self.__tracebackMatrix[0, j] = ["leftD"]
 
         # Matrix P
         self.__similarityMatrixP[0, 0] = 0
 
         for j in range(1, self.__lengthB + 1):
             self.__similarityMatrixP[0, j] = maxValue
-            #self.__tracebackMatrix[0, j] = ["right"]
 
         # Matrix Q
         self.__similarityMatrixQ[0, 0] = 0
         for i in range(1, self.__lengthA + 1):
             self.__similarityMatrixQ[i, 0] = maxValue
-            #self.__tracebackMatrix[i, 0] = ["up"]
 
         return
 
@@ -71,7 +69,7 @@ class Gotoh(GotohBase):
                 valueQ = max(case1Q, case2Q)
 
                 # fill D
-                valueD = self.__similarityMatrixD[subtitutionKey] + self.__substitutionMatrix(subtitutionKey)
+                valueD = self.__similarityMatrixD[subtitutionKey] + int(self.__substitutionMatrix(subtitutionKey))
                 value = max(valueD, valueP, valueQ)
 
                 self.__similarityMatrixD[currentPosition] = value
@@ -108,29 +106,29 @@ class Gotoh(GotohBase):
             pass
         else:
             findingAlignment = True
-            currentPosition = [self.__lengthA + 1, self.__lengthB + 1]
+            currentPosition = [self.__lengthA, self.__lengthB]
             traces = []
             while findingAlignment:
-                if (currentPosition[0] == 0 or currentPosition[1] == 0):
+                if (currentPosition[0] == 0 and currentPosition[1] == 0):
                     findingAlignment = False
                     break
                 else:
-                    traces = self.__tracebackMatrixD[currentPosition]
+                    traces = self.__tracebackMatrixD[tuple(currentPosition)]
                     traces = random.sample(traces, len(traces))
                     if traces[0] == "upD":
-                        self.__alignA = self.__segA[currentPosition[0]]
+                        self.__alignA = self.__segA[currentPosition[0]-1]
                         self.__alignB = "-"
                         self.__alignment = " "
                         currentPosition[0] -= 1
                     elif traces[0] == "leftD":
                         self.__alignA = "-"
-                        self.__alignB = self.__segB[currentPosition[1]]
+                        self.__alignB = self.__segB[currentPosition[1]-1]
                         self.__alignment = " "
                         currentPosition[1] -= 1
 
                     else:
-                        self.__alignA = self.__segA[currentPosition[0]]
-                        self.__alignB = self.__segB[currentPosition[1]]
+                        self.__alignA = self.__segA[currentPosition[0]-1]
+                        self.__alignB = self.__segB[currentPosition[1]-1]
                         if self.__alignA == self.__alignB:
                             self.__alignment = "*"
                         else:
@@ -155,6 +153,6 @@ class Gotoh(GotohBase):
 
             self.initialize()
             self.fillMatrix()
-            self.traceback(False)
+            self.traceback(complete_traceback)
             score = max(self.__similarityMatrix.values())
             return (score, self.__alignA, self.__alignment, self.__alignB)

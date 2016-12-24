@@ -16,14 +16,14 @@ class SequenceAlignmentParser:
 
     def __init__ (self, arg_list):
         try:
-            opts, args = getopt.getopt(arg_list, "hi:o:m:g:ca:",[]) #, ["ifile=", "ofile=", "substitutionMatrix", "gapCost=", "completeTraceback", "algo="])
-            print (len(opts), len (args))
+            opts, args = getopt.getopt(arg_list, "hi:o:m:g:e:ca:",[]) #, ["ifile=", "ofile=", "substitutionMatrix", "gapCost=", "completeTraceback", "algo="])
+            print(len(opts), len(args))
         except getopt.GetoptError:
-            print('SequenceAlignment.py -i <inputfile> -o <outputfile> -g <gapCost> -p -c -a <algo>')
+            print('SequenceAlignment.py -i <inputfile> -o <outputfile> -g <gapCostOpen> -e <gapCostExtend> -m -c -a <algo>')
             sys.exit(2)
         for opt, arg in opts:
             if opt == '-h':
-                print('SequenceAlignment.py -i <inputfile> -o <outputfile> -g <gapCost> -p -c -a <algo>')
+                print('SequenceAlignment.py -i <inputfile> -o <outputfile> -g <gapCost> -e <gapCostExtend> -m -c -a <algo>')
                 sys.exit()
             elif opt in ("-i", "--ifile"):
                 self.__inputFile = arg
@@ -35,9 +35,9 @@ class SequenceAlignmentParser:
                 else:
                     self.__substitutionMatrix = "blosum"
             elif opt in ("-g", "--gapCostOpen"):
-                self.__gapCostOpen = arg
+                self.__gapCostOpen = int(arg)
             elif opt in ("-e", "--gapCostExtend"):
-                self.__gapCostExtend = arg
+                self.__gapCostExtend = int(arg)
             elif opt in ("-c", "--completeTraceback"):
                 self.__completeTraceback = True
             elif opt in ("-a", "--algo"):
@@ -79,3 +79,4 @@ class SequenceAlignmentParser:
         print("substitution matrix = ", self.__substitutionMatrix)
         print("open gap cost = ", self.__gapCostOpen)
         print("extend gap cost = ", self.__gapCostExtend)
+        print("complete traceback = ", self.__completeTraceback)

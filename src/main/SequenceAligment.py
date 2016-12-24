@@ -4,13 +4,12 @@ import SubstitutionMatrix
 import SequenceLists
 import needleman_wunsch
 import gotoh
+import getopt
 
 def main(argv):
-    #i = len(argv)
-    #print("this is the src function with %d arguments: %s" %(i, argv[0]))
 
     # Manage options
-    parser = SequenceAlignmentParser(argv)
+    parser = SequenceAlignmentParser(sys.argv[1:])
     inputFile = parser.get_input_file()
     outputFile = parser.get_output_file()
     algo = parser.get_algo()
@@ -20,11 +19,18 @@ def main(argv):
     completeTraceback = parser.is_complete_traceback()
 
     # Load sequences
-    sequences = SequenceLists.SequenceLists("E:/PythonWorkspace/tmp/testFile.txt").values()
+    path = sys.argv[0]
+    dataDirectory = path.find("src")
+    directory = path[0:dataDirectory - 1] + "/data/"
+    filename = directory + "testFile.txt"
+
+    sequences = SequenceLists.SequenceLists(filename).values()
     seqs = list(sequences)
 
    # TODO: remember id
-
+    if (len(seqs) == 0):
+        print("not enough sequences")
+        sys.exit(2)
     seqA = seqs[0]
     seqB = seqs[1]
 
@@ -33,18 +39,22 @@ def main(argv):
     substitutionMatrix = SubstitutionMatrix.LoadSubstitutionMatix(substitutionMatrixType)
 
     # run Algorithms
-    print("Running ", end="")
-    if algo.find("gotoh"):
+    print("--------------------------")
+    if algo == "gotoh":
         parser.print_info()
-        algo = gotoh.Gotoh
-        #algo.run(seqA, seqB, substitutionMatrix, gapCostOpen, gapCostExtend, completeTraceback)
-        pass
+        gotohAlign = gotoh.Gotoh()
+        print("--------------------------")
+
+        result = gotohAlign.run(seqA, seqB, substitutionMatrix, gapCostOpen, gapCostExtend, False)
+
     else:
         parser.print_info()
-        seqAlign = needleman_wunsch.NeedlemanWunsch
-        result = seqAlign.run(seqA, seqB, substitutionMatrix, gapCostOpen, completeTraceback)
-        print("score = ", result[0])
+        seqAlign = needleman_wunsch.NeedlemanWunsch()
+        print("--------------------------")
 
+        result = seqAlign.run(seqA, seqB, substitutionMatrix, gapCostOpen, False)
+
+    print("score = ", result[0])
 
 if __name__ == '__main__':
     main(sys.argv);

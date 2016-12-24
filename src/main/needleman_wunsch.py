@@ -18,7 +18,7 @@ class NeedlemanWunsch(NeedlemanWunschBase):
     __alignB = ""
     __alignment = ""
 
-    def initialize(self) :
+    def initialize(self):
 
         self.__similarityMatrix[0,0] = 0
         for i in range(1,self.__lengthA+1):
@@ -27,7 +27,7 @@ class NeedlemanWunsch(NeedlemanWunschBase):
 
         for j in range(1,self.__lengthB+1):
             self.__similarityMatrix[0,j] = self.__similarityMatrix[0, j-1]  + self.__gapCost
-            self.__tracebackMatrix[0, j] = ["right"]
+            self.__tracebackMatrix[0, j] = ["left"]
 
         print("done initialization")
         return
@@ -43,9 +43,11 @@ class NeedlemanWunsch(NeedlemanWunschBase):
                 extendBKey = ('*', keyB)
 
                 # fill similarity matrix
-                valueLeft = self.__similarityMatrix[i+1,j]  + self.__similarityMatrix(extendBKey)
-                valueUp =   self.__similarityMatrix[i,j+1]  + self.__similarityMatrix(extendAKey)
-                valueDiag =   self.__similarityMatrix[i+1,j+1]  + self.__similarityMatrix(subtitutionKey)
+
+                valueLeft = self.__similarityMatrix[i+1,j]  + int(self.__substitutionMatrix[extendBKey])
+                valueUp =   self.__similarityMatrix[i,j+1]  + int(self.__substitutionMatrix[extendAKey])
+                valueDiag =   self.__similarityMatrix[i,j]  + int(self.__substitutionMatrix[subtitutionKey])
+
                 value = max (valueLeft, valueUp, valueDiag)
 
                 self.__similarityMatrix [currentPosition] = value
@@ -55,7 +57,7 @@ class NeedlemanWunsch(NeedlemanWunschBase):
                 if value == valueLeft:
                     traces.append("left")
                 if value == valueUp:
-                    traces.append("right")
+                    traces.append("up")
                 if value == valueDiag:
                     traces.append("diag")
                 self.__tracebackMatrix [currentPosition] = traces
@@ -67,29 +69,29 @@ class NeedlemanWunsch(NeedlemanWunschBase):
             pass
         else:
             findingAlignment = True
-            currentPosition = [self.__lengthA +1, self.__lengthB+1]
+            currentPosition = [self.__lengthA, self.__lengthB]
             traces = []
             while findingAlignment:
-                if (currentPosition[0] == 0 or currentPosition[1] == 0):
+                if (currentPosition[0] == 0 and currentPosition[1] == 0):
                     findingAlignment = False
                     break
                 else:
-                    traces = self.__tracebackMatrix[currentPosition]
+                    traces = self.__tracebackMatrix[tuple(currentPosition)]
                     traces = random.sample(traces, len(traces))
                     if traces[0] == "up":
-                        self.__alignA = self.__segA[currentPosition[0]]
+                        self.__alignA = self.__segA[currentPosition[0]-1]
                         self.__alignB = "-"
                         self.__alignment = " "
                         currentPosition[0] -= 1
-                    elif traces[0] == "right":
+                    elif traces[0] == "left":
                         self.__alignA = "-"
-                        self.__alignB = self.__segB[currentPosition[1]]
+                        self.__alignB = self.__segB[currentPosition[1]-1]
                         self.__alignment = " "
                         currentPosition[1] -= 1
 
                     else:
-                        self.__alignA = self.__segA[currentPosition[0]]
-                        self.__alignB = self.__segB[currentPosition[1]]
+                        self.__alignA = self.__segA[currentPosition[0]-1]
+                        self.__alignB = self.__segB[currentPosition[1]-1]
                         if self.__alignA == self.__alignB:
                             self.__alignment = "*"
                         else:
@@ -110,13 +112,13 @@ class NeedlemanWunsch(NeedlemanWunschBase):
             self.__segB = seq2_fasta_fn
             self.__lengthA = len(seq1_fasta_fn)
             self.__lengthB = len(seq2_fasta_fn)
-            self.__similarityMatrix = subst_matrix_fn
+            self.__substitutionMatrix = subst_matrix_fn
             self.__gapCost = cost_gap_open
             self.__complete = complete_traceback
 
             self.initialize()
             self.fillMatrix()
-            self.traceback(False)
+            self.traceback(complete_traceback)
             print("done")
             score= max(self.__similarityMatrix.values())
             return (score, self.__alignA, self.__alignment, self.__alignB)
